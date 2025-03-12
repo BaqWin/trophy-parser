@@ -7,8 +7,9 @@ import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.Map;
+import java.util.Set;
+import lombok.extern.java.Log;
 import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -21,7 +22,10 @@ import javax.json.JsonWriterFactory;
 import javax.json.stream.JsonGenerator;
 import javax.json.JsonWriter;
 
+@Log
 public class ExophaseGameParser {
+
+  private static Map<String, String> JSOUP_HEADERS = Map.of("User-Agent", "PostmanRuntime/7.41.2");
 
   private File gameDir = null;
   private String logPrefix = "";
@@ -37,7 +41,7 @@ public class ExophaseGameParser {
 
   public void parseGame(Game game, int system) throws IOException {
     String url = game.getUrl();// + "?lang=pl";
-    Document d = Jsoup.connect(url).get();
+    Document d = Jsoup.connect(url).headers(JSOUP_HEADERS).get();
 
     // Get game name from header
     String gameName = game.getName();// d.select("h3").first().text().split("â€º")[1];
@@ -72,7 +76,7 @@ public class ExophaseGameParser {
     parseTrophies(d, shortGameName, system, false);
 
     if (hasPolish && doPolish) {
-      d = Jsoup.connect(url + "pl").get();
+      d = Jsoup.connect(url + "pl").headers(JSOUP_HEADERS).get();
       parseTrophies(d, shortGameName, system, true);
       doPolish = false;
     }
@@ -205,7 +209,7 @@ public class ExophaseGameParser {
   }
 
   public void printTrophies(boolean providedByPublisher)
-          throws IOException {
+      throws IOException {
     for (String s : trophies.keySet()) {
 
       PrintWriter writer = new PrintWriter(gameDir.getPath() + File.separator + s + "_html.txt",
